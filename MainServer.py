@@ -15,7 +15,7 @@ class MainServer:
         self.servers = [Server() for i in range(CHUNKS_NUMBER + REDUNDENT_SIZE)]
 
 
-    def addFile(self, file, fileName):
+    def addFile(self, file, fileName, type):
         # Convert data to bytes (assuming data is a string)
         data_bytes = file.encode('utf-8')
 
@@ -35,7 +35,8 @@ class MainServer:
         self.filesMap[fileName] = {
             "numberOfparts": CHUNKS_NUMBER,
             "redundent": 3,
-            "root": root
+            "root": root,
+            "type" : type
         }
         return True
 
