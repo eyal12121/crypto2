@@ -41,12 +41,12 @@ class MainServer:
         # encoder = reedsolo.RSCodec(REDUNDANT_SIZE)
         #
         # encoded_chunks = encoder.encode(data_bytes)
-        i = len(encoded_chunks) % (CHUNKS_NUMBER )
-        chunk_size = len(encoded_chunks) // (CHUNKS_NUMBER) + i
+        i = len(encoded_chunks) % CHUNKS_NUMBER
+        chunk_size = len(encoded_chunks) // CHUNKS_NUMBER + i
         chunks = [encoded_chunks[i:i + chunk_size] for i in range(0, len(encoded_chunks), chunk_size)]
         # Step 3: Generate the 4 redundant blocks using Reed-Solomon coding
-        redundentChunks = self.generate_redundant_chunks(chunks, REDUNDANT_SIZE)
-        chunks += redundentChunks[CHUNKS_NUMBER:]
+        redundant_chunks = self.generate_redundant_chunks(chunks, REDUNDANT_SIZE)
+        chunks += redundant_chunks[CHUNKS_NUMBER:]
 
         root_hash, proofs = self.build_merkle_tree(chunks)
         for ind, server in enumerate(self.servers):
