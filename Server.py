@@ -1,5 +1,3 @@
-
-
 class Server:
     def __init__(self):
         self.storage = {}  # Dictionary to store chunks and their hashes

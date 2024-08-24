@@ -9,12 +9,6 @@ class Client:
     def __init__(self, main_server):
         self.main_server = main_server  # Reference to the main server
 
-    def hash_data(self, data):
-        """
-        Generate a SHA-256 hash of the given data.
-        """
-        return hashlib.sha256(data).hexdigest()
-
     def add_file(self, file):
         """
         Add a file to the file system.
@@ -28,7 +22,7 @@ class Client:
         Verify individual chunk.
         """
         chunk_data, index, siblings = chunk
-        curr_data = self.hash_data(chunk_data)
+        curr_data = Utils.hash_data(chunk_data)
         for sibling, sibling_side in siblings:
             if sibling_side == "right":
                 curr_data = Utils.hash_concat(curr_data, sibling)
@@ -41,6 +35,7 @@ class Client:
         """
         Reassemble the chunks into a complete file.
         """
+
         with open(output_path, 'wb') as output_file:
             for chunk in chunks:
                 output_file.write(chunk)
@@ -71,5 +66,5 @@ class Client:
                 if repeat:
                     break
                 repeat = True
-                time.sleep(60)
+                time.sleep(5)
         return True, self.reassemble_file(retrieved_chunks, output_path)
