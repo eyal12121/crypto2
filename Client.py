@@ -6,7 +6,7 @@ from Utils import Utils
 
 class Client:
     def __init__(self, main_server):
-        self.main_server = main_server  # Reference to the main server
+        self.main_server = main_server
 
     def add_file(self, file):
         """
