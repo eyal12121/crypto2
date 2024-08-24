@@ -67,4 +67,4 @@ class Client:
                     break
                 repeat = True
                 time.sleep(5)
-        return True, self.reassemble_file(retrieved_chunks, output_path)
+        return True, self.reassemble_file(retrieved_chunks[:file_metadata["num_parts"]], output_path)
