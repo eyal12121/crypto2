@@ -47,12 +47,11 @@ class Client:
         file_metadata = self.main_server.get_file_metadata(file_path)
         if not file_metadata:
             print("File not found on the server.")
-            return False
+            return False, None
 
         root_hash = file_metadata["root_hash"]
         chunks_queue = file_metadata["queue"]
 
-        # verify chunks
         retrieved_chunks = [None] * len(chunks_queue)
         for chunk in chunks_queue:
             verified, chunk_data, index = self.verify_chunk(chunk, root_hash)
