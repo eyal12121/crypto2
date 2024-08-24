@@ -81,6 +81,9 @@ class Client:
                 time.sleep(60)
 
 
+
+
+
         # for chunk in chunks_queue:
         #     verified, chunk_data, index = self.verify_chunk(chunk, root_hash)
         #     if not verified:
