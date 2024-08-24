@@ -1,6 +1,7 @@
 import threading
 
 import reedsolo
+import Utils
 
 from Server import Server
 
@@ -12,11 +13,7 @@ class MainServer:
     def __init__(self):
         self.filesMap = None
         self.servers = [Server() for i in range(CHUNKS_NUMBER + REDUNDENT_SIZE)]
-    def hash_data(self, data):
-        return hashlib.sha256(data.encode('utf-8')).hexdigest()
 
-    def hash_concat(self, left, right):
-        return hashlib.sha256((left + right).encode('utf-8')).hexdigest()
 
     def addFile(self, file, fileName):
         # Convert data to bytes (assuming data is a string)
@@ -55,13 +52,13 @@ class MainServer:
             for i in range(0, len(current_level) - 1, 2):
                 left_hash = current_level[i]
                 right_hash = current_level[i + 1]
-                next_level.append(hash_concat(left_hash, right_hash))
+                next_level.append(Utils.Utils.hash_concat(left_hash, right_hash))
 
                 # Store proof for both leaves
                 if len(proofs) > 0:
                     proofs[i // 2] = [right_hash] + (proofs[i] if proofs[i] else [])
                     proofs[i // 2] += (proofs[i + 1] if proofs[i + 1] else [])
-                    proofs[i // 2].append(hash_concat(left_hash, right_hash))
+                    proofs[i // 2].append(Utils.Utils.hash_concat(left_hash, right_hash))
 
             if len(current_level) % 2 == 1:
                 next_level.append(current_level[-1])

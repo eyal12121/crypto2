@@ -22,3 +22,4 @@ class Utils:
         return hash == root_hash  # Verify against the root hash
 
     # Function to build a Merkle tree and get root hash
+
