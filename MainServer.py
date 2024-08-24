@@ -6,27 +6,27 @@ import Utils
 from Server import Server
 
 CHUNKS_NUMBER = 10
-REDUNDENT_SIZE = 3
-class MainServer:
+REDUNDANT_SIZE = 3
 
+
+class MainServer:
 
     def __init__(self):
         self.filesMap = None
-        self.servers = [Server() for i in range(CHUNKS_NUMBER + REDUNDENT_SIZE)]
+        self.servers = [Server() for i in range(CHUNKS_NUMBER + REDUNDANT_SIZE)]
 
-
-    def addFile(self, file, fileName):
+    def add_file(self, file, fileName):
         # Convert data to bytes (assuming data is a string)
         data_bytes = file.encode('utf-8')
 
         # Create Reed-Solomon encoder with 4 data chunks and 2 redundant chunks
-        encoder = reedsolo.RSCodec(REDUNDENT_SIZE)
+        encoder = reedsolo.RSCodec(REDUNDANT_SIZE)
 
         # Encode data
         encoded_chunks = encoder.encode(data_bytes)
 
         # Split encoded data into chunks
-        chunk_size = len(encoded_chunks) // (CHUNKS_NUMBER + REDUNDENT_SIZE)
+        chunk_size = len(encoded_chunks) // (CHUNKS_NUMBER + REDUNDANT_SIZE)
         chunks = [encoded_chunks[i:i + chunk_size] for i in range(0, len(encoded_chunks), chunk_size)]
         root, proofs = self.build_merkle_tree(chunks)
         for ind, server in enumerate(self.servers):
@@ -39,10 +39,11 @@ class MainServer:
         }
         return True
 
-    def getFile(self, filename, dataQueue):
+    def get_file(self, filename, dataQueue):
         for server in self.servers:
             server.pushData(filename, dataQueue)
         return self.filesMap[filename]
+
     def build_merkle_tree(self, leaves):
         current_level = [self.hash_data(leaf) for leaf in leaves]
         proofs = [None] * len(leaves)

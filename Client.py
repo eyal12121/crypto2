@@ -1,5 +1,6 @@
 import hashlib
 
+
 class Client:
     def __init__(self, main_server):
         self.main_server = main_server  # Reference to the main server
