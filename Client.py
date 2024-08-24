@@ -2,8 +2,7 @@ import hashlib
 import queue
 import time
 
-import Utils
-
+from Utils import Utils
 
 
 class Client:
@@ -20,7 +19,9 @@ class Client:
         """
         Add a file to the file system.
         """
-        return self.main_server.add_file(file)
+        with open(file, "r") as f:
+            file_content = f.read()
+        return self.main_server.add_file(file_content, file)
 
     def verify_chunk(self, chunk, root_hash):
         """
@@ -30,9 +31,9 @@ class Client:
         curr_data = self.hash_data(chunk_data)
         for sibling, sibling_side in siblings:
             if sibling_side == "right":
-                curr_data = self.hash_data(curr_data + sibling)
+                curr_data = Utils.hash_concat(curr_data, sibling)
             else:
-                curr_data = self.hash_data(sibling + curr_data)
+                curr_data = Utils.hash_concat(sibling, curr_data)
 
         return curr_data == root_hash, chunk_data, index
 
@@ -45,49 +46,30 @@ class Client:
                 output_file.write(chunk)
         print(f"File reassembled and saved to {output_path}.")
 
-    def verify_data(self, data, proof, root_hash):
-        hash = Utils.Utils.hash_data(data)  # Hash of the data chunk
-        for sibling in proof:
-            hash = Utils.Utils.hash_concat(hash, sibling)  # Combine with sibling hashes
-        return hash == root_hash  # Verify against the root hash
-
-
     def request_file(self, file_path, output_path):
         """
         Request a file from the main server and verify its integrity.
         """
         chunks_queue = queue.Queue()
-        file_metadata = self.main_server.get_file_metadata(file_path, chunks_queue)
+        file_metadata = self.main_server.get_file(file_path, chunks_queue)
         if not file_metadata:
             print("File not found on the server.")
             return False, None
 
         root_hash = file_metadata["root_hash"]
-        retrived = 0
+        retrieved = 0
         repeat = False
-        retrieved_chunks = [None] * len(file_metadata["numberOfparts"] + file_metadata["redundent"])
-        while retrived < len(retrieved_chunks) - 1:
+        retrieved_chunks = [None] * (file_metadata["num_parts"] + file_metadata["redundant"])
+        while retrieved < len(retrieved_chunks):
             try:
                 repeat = False
-                chunk,proofs, num = chunks_queue.get()
-                verified, chunk_data, index = self.verify_data(chunk, proofs, root_hash)
+                verified, chunk_data, index = self.verify_chunk(chunks_queue.get(), root_hash)
                 if verified:
-                    retrieved_chunks[num] = chunk
-                    retrived += 1
-            except:
-                if repeat == True:
+                    retrieved_chunks[index] = chunk_data
+                    retrieved += 1
+            except queue.Empty:
+                if repeat:
                     break
                 repeat = True
                 time.sleep(60)
-
-
-
-
-
-        # for chunk in chunks_queue:
-        #     verified, chunk_data, index = self.verify_chunk(chunk, root_hash)
-        #     if not verified:
-        #         return verified, None
-        #     retrieved_chunks[index] = chunk_data
-        # if retrived < len(retrieved_chunks) - 1:
         return True, self.reassemble_file(retrieved_chunks, output_path)

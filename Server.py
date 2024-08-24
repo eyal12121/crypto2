@@ -15,4 +15,4 @@ class Server:
         """
         Push the requested data into the given queue.
         """
-        chunks_queue.push(self.storage.get(file_name, None))
+        chunks_queue.put(self.storage.get(file_name, None))
