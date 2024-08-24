@@ -1,6 +1,6 @@
 import threading
 
-import reedsolo
+from reedsolo import RSCodec
 from Utils import Utils
 
 from Server import Server
@@ -19,13 +19,17 @@ class MainServer:
         rs = RSCodec(r)
         encoded_data = rs.encode(b''.join(data_chunks))
         n = len(data_chunks) + r
-        return split_into_chunks(encoded_data, n)
+        return self.split_into_chunks(encoded_data, n)
 
-    def split_into_chunks(self, data, k):
+    @staticmethod
+    def split_into_chunks(data, k):
+        """
+        Splits the data into k chunks.
+        """
         chunk_size = len(data) // k
         chunks = [data[i * chunk_size: (i + 1) * chunk_size] for i in range(k)]
         if len(data) % k != 0:
-            chunks[-1] += data[k * chunk_size:]  # Add any remaining data to the last chunk
+            chunks[-1] += data[k * chunk_size:]
         return chunks
 
     def add_file(self, file_contents, file_name):
