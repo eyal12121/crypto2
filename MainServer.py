@@ -5,8 +5,8 @@ from Utils import Utils
 
 from Server import Server
 
-CHUNKS_NUMBER = 7
-REDUNDANT_SIZE = 1
+CHUNKS_NUMBER = 6
+REDUNDANT_SIZE = 2
 
 
 class MainServer:

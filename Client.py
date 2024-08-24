@@ -5,6 +5,7 @@ from Utils import Utils
 
 from reedsolo import RSCodec
 
+
 class Client:
     def __init__(self, main_server):
         self.main_server = main_server
@@ -45,7 +46,7 @@ class Client:
     def recover_data(self, encoded_chunks, k, r):
         rs = RSCodec(r)
         # Combine the available chunks into a single byte string
-        available_chunks = b''.join(encoded_chunks)
+        available_chunks = b''.join([chunk for chunk in encoded_chunks if chunk])
         # Decode the combined data
         decoded_data = rs.decode(available_chunks)
         return decoded_data
@@ -76,16 +77,18 @@ class Client:
                     break
                 repeat = True
                 time.sleep(5)
+        retrieved_chunks[3]= None
+        retrieved -= 1
 
-
-        if retrieved_chunks - retrieved > file_metadata["redundant"]:
+        if (len(retrieved_chunks) - retrieved) > file_metadata["redundant"]:
             return False
         # Recover the missing chunk
         recovered_chunks = []
-        for i in range(len(file_metadata["num_parts"] + file_metadata["redundant"])):
+        for i in range(file_metadata["num_parts"] + file_metadata["redundant"]):
             if retrieved_chunks[i] is None:
                 # Recover the lost chunk
-                recovered_chunk = self.recover_data(retrieved_chunks, file_metadata["num_parts"] ,file_metadata["redundant"])
+                recovered_chunk = self.recover_data(retrieved_chunks, file_metadata["num_parts"],
+                                                    file_metadata["redundant"])
                 recovered_chunks.append(recovered_chunk)
             else:
                 recovered_chunks.append(retrieved_chunks[i])
