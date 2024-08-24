@@ -5,7 +5,7 @@ from Utils import Utils
 
 from Server import Server
 
-CHUNKS_NUMBER = 10
+CHUNKS_NUMBER = 13
 REDUNDANT_SIZE = 3
 
 
@@ -42,8 +42,8 @@ class MainServer:
 
     def build_merkle_tree(self, leaves):
         current_level = [Utils.hash_data(leaf) for leaf in leaves]
-        proofs = [None] * len(leaves)
-
+        proofs = [[]] * len(leaves)
+        cur = 1
         while len(current_level) > 1:
             next_level = []
             for i in range(0, len(current_level) - 1, 2):
@@ -52,14 +52,19 @@ class MainServer:
                 next_level.append(Utils.hash_concat(left_hash, right_hash))
 
                 # Store proof for both leaves
-                if len(proofs) > 0:
-                    proofs[i // 2] = [right_hash] + (proofs[i] if proofs[i] else [])
-                    proofs[i // 2] += (proofs[i + 1] if proofs[i + 1] else [])
-                    proofs[i // 2].append(Utils.hash_concat(left_hash, right_hash))
+                for ind in range(i * cur, (i+1) * cur):
+                    proofs[ind].append((right_hash, "right"))
+                for ind in range((i+1)  * cur, (i+2) * cur):
+                    proofs[ind].append((left_hash, "left"))
+                    # proofs[i // 2] = [right_hash] + (proofs[i] if proofs[i] else [])
+                    # proofs[i // 2] += (proofs[i + 1] if proofs[i + 1] else [])
+                    # proofs[i // 2].append(Utils.hash_concat(left_hash, right_hash))
 
             if len(current_level) % 2 == 1:
                 next_level.append(current_level[-1])
 
             current_level = next_level
+            cur *= 2
+
 
         return current_level[0], proofs
