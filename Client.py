@@ -1,4 +1,3 @@
-import hashlib
 import queue
 import time
 
@@ -17,7 +16,8 @@ class Client:
             file_content = f.read()
         return self.main_server.add_file(file_content, file)
 
-    def verify_chunk(self, chunk, root_hash):
+    @staticmethod
+    def verify_chunk(chunk, root_hash):
         """
         Verify individual chunk.
         """
@@ -31,11 +31,11 @@ class Client:
 
         return curr_data == root_hash, chunk_data, index
 
-    def reassemble_file(self, chunks, output_path):
+    @staticmethod
+    def reassemble_file(chunks, output_path):
         """
         Reassemble the chunks into a complete file.
         """
-
         with open(output_path, 'wb') as output_file:
             for chunk in chunks:
                 output_file.write(chunk)

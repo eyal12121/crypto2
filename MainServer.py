@@ -29,6 +29,9 @@ class MainServer:
         return chunks
 
     def add_file(self, file_contents, file_name):
+        """
+        Adds a file to the system by dividing it into chunks and distributing it amongst different servers.
+        """
         encoded_chunks = file_contents.encode('utf-8')
 
         # encoder = reedsolo.RSCodec(REDUNDANT_SIZE)
@@ -53,11 +56,18 @@ class MainServer:
         return True, root_hash
 
     def get_file(self, filename, data_queue):
+        """
+        Gets file data chunks from the different servers.
+        """
         for server in self.servers:
             server.push_data(filename, data_queue)
         return self.files_map[filename]
 
-    def build_merkle_tree(self, leaves):
+    @staticmethod
+    def build_merkle_tree(leaves):
+        """
+        Builds a merkle tree and calculates the proof data for each leaf.
+        """
         current_level = [Utils.hash_data(leaf) for leaf in leaves]
         proofs = [[] for _ in leaves]
         cur = 1

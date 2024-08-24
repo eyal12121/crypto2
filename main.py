@@ -8,7 +8,7 @@ def main():
     client = Client(main_server)
 
     file_path = "example.txt"
-    did_succeed, root_hash = client.add_file(file_path)
+    client.add_file(file_path)
     output_path = "checking.txt"
     client.request_file(file_path, output_path)
 
