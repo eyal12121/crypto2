@@ -1,9 +1,6 @@
 import sys
-import threading
-
 import zfec
 from Utils import Utils
-
 from Server import Server
 
 CHUNKS_NUMBER = 6

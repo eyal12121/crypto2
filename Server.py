@@ -21,4 +21,4 @@ class Server:
         chunks_queue.put(self.storage.get(file_name, None))
 
     def check_data(self, file_name):
-        return self.storage[file_name][0] == None
+        return self.storage[file_name][0] is None
