@@ -105,23 +105,6 @@ class Client:
     def remove_file(self, file):
         return self.main_server.remove_file(file, self.p, self.g, self.public_key)
 
-    def retrieve_proof(self):
-        pass
-
-
-    def recover_servers(self, shares, indices, all_connections, num_of_pieces, proofs, file_name):
-        for ind in range(num_of_pieces):
-            if ind not in indices:
-                if ind % 2 == 0:
-                    new_proof = proofs[ind + 1][:]
-                    new_proof[0] = (Utils.hash_data(shares[ind + 1]), "right")
-                else:
-                    new_proof = proofs[ind - 1][:]
-                    new_proof[0] = (Utils.hash_data(shares[ind - 1]), "left")
-                self.main_server.recover_server(ind, shares[ind], new_proof, file_name, ind not in all_connections)
-
-
-
 
     def request_file(self, file_path, output_path):
         """
@@ -173,6 +156,6 @@ class Client:
             retrieved_chunks = decoder.decode(recovered_chunks, indices[:file_metadata["num_parts"]])
             encoder = zfec.Encoder(file_metadata["num_parts"], file_metadata["redundant"] + file_metadata["num_parts"])
             shares = encoder.encode(retrieved_chunks)
-            self.recover_servers(shares, indices, all_connections, file_metadata["num_parts"] + file_metadata["redundant"], proofs, file_path)
+            self.main_server.recover_servers(shares, indices, all_connections, file_path)
 
         return True, self.reassemble_file(retrieved_chunks[:file_metadata["num_parts"]], output_path)
