@@ -1,3 +1,4 @@
+import random
 import sys
 import zfec
 from Utils import Utils
@@ -97,7 +98,8 @@ class MainServer:
         if filename not in self.files_map.keys():
             return None
         for server in self.servers:
-            server.push_data(filename, data_queue)
+            if server is not None:
+                server.push_data(filename, data_queue)
         return self.files_map[filename]
 
     @staticmethod
@@ -128,3 +130,16 @@ class MainServer:
             cur *= 2
 
         return current_level[0], proofs
+
+    """"
+    simulate corruption to a server
+    """
+    def corrupt_data(self, file_name):
+        random_server = random.randint(0, len(self.servers))
+        self.servers[random_server].corrupt_data(file_name)
+    """"
+    simulate conncetion lose to a server
+    """
+    def connection_loss(self):
+        random_server = random.randint(0, len(self.servers))
+        self.servers[random_server] = None

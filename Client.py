@@ -113,7 +113,7 @@ class Client:
         while retrieved < len(retrieved_chunks):
             try:
                 verified, chunk_data, index = self.verify_chunk(chunks_queue.get(timeout=5), root_hash)
-                if verified and index != 1:
+                if verified:
                     retrieved_chunks[index] = chunk_data
                     retrieved += 1
                     indices.append(index)

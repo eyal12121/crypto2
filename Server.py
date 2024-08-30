@@ -1,3 +1,6 @@
+from random import random
+
+
 class Server:
     def __init__(self):
         self.storage = {}
@@ -22,3 +25,7 @@ class Server:
 
     def check_data(self, file_name):
         return self.storage[file_name][0] is None
+
+
+    def corrupt_data(self, file_name):
+        self.storage[file_name][0] = bytearray(random.getrandbits(8) for _ in range(10))
