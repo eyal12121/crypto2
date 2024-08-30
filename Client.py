@@ -1,12 +1,8 @@
-import os
 import queue
-import time
+import sys
+
 import zfec
-
-
 from Utils import Utils
-
-from reedsolo import RSCodec
 import secrets
 from sympy import isprime
 
@@ -86,19 +82,9 @@ class Client:
         Reassemble the chunks into a complete file.
         """
 
-        temp_path = output_path + '.temp'
-        with open(temp_path, 'wb') as output_file:
-            for chunk in chunks:
-                output_file.write(chunk)
-
-        # Step 2: Read the temporary file and strip trailing null bytes
-        with open(temp_path, 'rb') as temp_file:
-            data = temp_file.read().rstrip(b'\0')
-
-        # Step 3: Write the cleaned data to the final output file
+        decoded_data = b''.join(chunks).rstrip(b'\0')
         with open(output_path, 'wb') as output_file:
-            output_file.write(data)
-        os.remove(temp_path)
+            output_file.write(decoded_data)
         print(f"File reassembled and saved to {output_path}.")
 
 
@@ -112,37 +98,33 @@ class Client:
         """
         chunks_queue = queue.Queue()
         file_metadata = self.main_server.get_file(file_path, chunks_queue)
+        if file_metadata is None:
+            print("file don't exist", file=sys.stderr)
+            return
         if not file_metadata:
             print("File not found on the server.")
             return False, None
 
         root_hash = file_metadata["root_hash"]
         retrieved = 0
-        repeat = False
         retrieved_chunks = [None] * (file_metadata["num_parts"] + file_metadata["redundant"])
         indices = []
-        all_connections = []
-        proofs = {}
+        all_connections = set()
         while retrieved < len(retrieved_chunks):
             try:
-                # repeat = False
-                chunk = chunks_queue.get(timeout=5)
-                proofs[chunk[1]] = chunk[2]
-                verified, chunk_data, index = self.verify_chunk(chunk, root_hash)
+                verified, chunk_data, index = self.verify_chunk(chunks_queue.get(timeout=5), root_hash)
                 if verified and index != 1:
                     retrieved_chunks[index] = chunk_data
                     retrieved += 1
                     indices.append(index)
-                all_connections.append(index)
+                all_connections.add(index)
             except queue.Empty:
-                # if repeat:
                 break
-                # repeat = True
-                # time.sleep(5)
 
 
 
         if file_metadata["num_parts"] + file_metadata["redundant"] - retrieved > file_metadata["redundant"]:
+            print("too many drops to recover file", file=sys.stderr)
             return False
         # Recover the missing chunk
         recovered_chunks = []
@@ -154,9 +136,7 @@ class Client:
 
             # Decode the data from the available shares
             retrieved_chunks = decoder.decode(recovered_chunks, indices[:file_metadata["num_parts"]])
-            encoder = zfec.Encoder(file_metadata["num_parts"], file_metadata["redundant"] + file_metadata["num_parts"])
-            shares = encoder.encode(retrieved_chunks)
 
-            self.main_server.recover_servers(shares, indices, all_connections, file_path)
+            self.main_server.recover_servers(retrieved_chunks, indices, all_connections, file_path)
 
         return True, self.reassemble_file(retrieved_chunks[:file_metadata["num_parts"]], output_path)

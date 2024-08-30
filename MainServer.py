@@ -24,9 +24,9 @@ class MainServer:
                                                                         signer_prime) % signer_prime
         return int(Utils.hash_concat(str(check), str(obj)), 16) == signature[1]
 
-
-
-    def recover_servers(self,  shares, indices, all_connections, file_name):
+    def recover_servers(self,  retrieved_chunks, indices, all_connections, file_name):
+        encoder = zfec.Encoder(CHUNKS_NUMBER, CHUNKS_NUMBER + REDUNDANT_SIZE)
+        shares = encoder.encode(retrieved_chunks)
         proofs = MainServer.build_merkle_tree(shares)[1]
         for ind in range(CHUNKS_NUMBER + REDUNDANT_SIZE):
             if ind not in indices:
@@ -100,6 +100,8 @@ class MainServer:
         """
         Gets file data chunks from the different servers.
         """
+        if filename not in self.files_map.keys():
+            return None
         for server in self.servers:
             server.push_data(filename, data_queue)
         return self.files_map[filename]
