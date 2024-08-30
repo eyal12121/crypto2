@@ -23,7 +23,9 @@ class MainServer:
                                                                         signer_prime) % signer_prime
         return int(Utils.hash_concat(str(check), str(obj)), 16) == signature[1]
 
-    def recover_servers(self, shares, indices, all_connections, file_name):
+    def recover_servers(self, retrieved_chunks, indices, all_connections, file_name):
+        encoder = zfec.Encoder(CHUNKS_NUMBER, CHUNKS_NUMBER + REDUNDANT_SIZE)
+        shares = encoder.encode(retrieved_chunks)
         proofs = MainServer.build_merkle_tree(shares)[1]
         for ind in range(CHUNKS_NUMBER + REDUNDANT_SIZE):
             if ind not in indices:
@@ -134,13 +136,13 @@ class MainServer:
     """"
     simulate corruption to a server
     """
-    def corrupt_data(self, file_name):
-        random_server = random.randint(0, len(self.servers) - 1)
-        self.servers[random_server].corrupt_data(file_name)
+    def corrupt_data(self, file_name, num):
+        # random_server = random.randint(0, len(self.servers) - 1)
+        self.servers[num].corrupt_data(file_name)
 
-    def connection_loss(self):
+    def connection_loss(self, num):
         """
         Simulates connection loss to a server.
         """
-        random_server = random.randint(0, len(self.servers) - 1)
-        self.servers[random_server] = None
+        # random_server = random.randint(0, len(self.servers) - 1)
+        self.servers[num] = None
