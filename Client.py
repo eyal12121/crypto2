@@ -100,13 +100,6 @@ class Client:
         os.remove(temp_path)
         print(f"File reassembled and saved to {output_path}.")
 
-    @staticmethod
-    def recover_data(encoded_chunks, k, r):
-        # Combine the available chunks into a single byte string
-        available_chunks = b''.join(encoded_chunks)
-        # Decode the combined data
-        decoded_data = rs.decode(available_chunks)
-        return decoded_data
 
     def remove_file(self, file):
         return self.main_server.remove_file(file, self.p, self.g, self.public_key)
