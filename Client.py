@@ -101,6 +101,7 @@ class Client:
         if file_metadata is None:
             print("file don't exist", file=sys.stderr)
             return
+
         if not file_metadata:
             print("File not found on the server.")
             return False, None
