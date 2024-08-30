@@ -1,3 +1,4 @@
+import sys
 import threading
 
 import zfec
@@ -89,7 +90,7 @@ class MainServer:
         uploaded the said file.
         """
         if filename not in self.files_map:
-            print("File does not exist")
+            print("File does not exist", file=sys.stderr)
             return False
         if self.check_signature(filename, self.files_map[filename]["signature"], signer_prime, signer_generator,
                                 signer_public_key):
@@ -97,7 +98,7 @@ class MainServer:
                 server.remove_data(filename)
             self.files_map.pop(filename)
             return True
-        print("No permissions to remove file")
+        print("No permissions to remove file", file=sys.stderr)
         return False
 
     def get_file(self, filename, data_queue):
