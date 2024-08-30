@@ -24,9 +24,9 @@ class MainServer:
                                                                         signer_prime) % signer_prime
         return int(Utils.hash_concat(str(check), str(obj)), 16) == signature[1]
 
-    def recover_servers(self,  retrieved_chunks, indices, all_connections, file_name):
-        encoder = zfec.Encoder(CHUNKS_NUMBER, CHUNKS_NUMBER + REDUNDANT_SIZE)
-        shares = encoder.encode(retrieved_chunks)
+
+
+    def recover_servers(self,  shares, indices, all_connections, file_name):
         proofs = MainServer.build_merkle_tree(shares)[1]
         for ind in range(CHUNKS_NUMBER + REDUNDANT_SIZE):
             if ind not in indices:
@@ -88,12 +88,16 @@ class MainServer:
         Removes file data chunks from the different servers only if client which requested to remove it is the one that
         uploaded the said file.
         """
+        if filename not in self.files_map:
+            print("File does not exist")
+            return False
         if self.check_signature(filename, self.files_map[filename]["signature"], signer_prime, signer_generator,
                                 signer_public_key):
             for server in self.servers:
                 server.remove_data(filename)
             self.files_map.pop(filename)
             return True
+        print("No permissions to remove file")
         return False
 
     def get_file(self, filename, data_queue):

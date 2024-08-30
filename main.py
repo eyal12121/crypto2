@@ -30,6 +30,7 @@ def main():
     assert (not clients[0].remove_file(file_path))  # client asks to remove file that it did not add to system
     # server changed info / fall
     # dynamic server amount (serverManager)?
+    # add threading?
     # add test funcs for different case scenarios
 
 
