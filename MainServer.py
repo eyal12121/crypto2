@@ -135,11 +135,12 @@ class MainServer:
     simulate corruption to a server
     """
     def corrupt_data(self, file_name):
-        random_server = random.randint(0, len(self.servers))
+        random_server = random.randint(0, len(self.servers) - 1)
         self.servers[random_server].corrupt_data(file_name)
-    """"
-    simulate conncetion lose to a server
-    """
+
     def connection_loss(self):
-        random_server = random.randint(0, len(self.servers))
+        """
+        Simulates connection loss to a server.
+        """
+        random_server = random.randint(0, len(self.servers) - 1)
         self.servers[random_server] = None

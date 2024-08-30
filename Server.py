@@ -1,4 +1,4 @@
-from random import random
+from random import random, getrandbits
 
 
 class Server:
@@ -26,6 +26,6 @@ class Server:
     def check_data(self, file_name):
         return self.storage[file_name][0] is None
 
-
     def corrupt_data(self, file_name):
-        self.storage[file_name][0] = bytearray(random.getrandbits(8) for _ in range(10))
+        self.storage[file_name] = bytearray(getrandbits(8) for _ in range(10)), self.storage[file_name][
+            1], self.storage[file_name][2]

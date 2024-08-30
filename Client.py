@@ -99,7 +99,7 @@ class Client:
         file_metadata = self.main_server.get_file(file_path, chunks_queue)
         if file_metadata is None:
             print("file don't exist", file=sys.stderr)
-            return
+            return False, None
 
         if not file_metadata:
             print("File not found on the server.")
@@ -123,7 +123,7 @@ class Client:
 
         if file_metadata["num_parts"] + file_metadata["redundant"] - retrieved > file_metadata["redundant"]:
             print("too many drops to recover file", file=sys.stderr)
-            return False
+            return False, None
         # Recover the missing chunk
         recovered_chunks = []
         if file_metadata["num_parts"] + file_metadata["redundant"] > retrieved:
