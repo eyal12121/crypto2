@@ -6,6 +6,7 @@ from Utils import Utils
 import secrets
 from sympy import isprime
 
+
 class Client:
     def __init__(self, main_server):
         self.main_server = main_server
@@ -87,10 +88,8 @@ class Client:
             output_file.write(decoded_data)
         print(f"File reassembled and saved to {output_path}.")
 
-
     def remove_file(self, file):
         return self.main_server.remove_file(file, self.p, self.g, self.public_key)
-
 
     def request_file(self, file_path, output_path):
         """
@@ -121,8 +120,6 @@ class Client:
                 all_connections.add(index)
             except queue.Empty:
                 break
-
-
 
         if file_metadata["num_parts"] + file_metadata["redundant"] - retrieved > file_metadata["redundant"]:
             print("too many drops to recover file", file=sys.stderr)

@@ -22,9 +22,7 @@ class MainServer:
                                                                         signer_prime) % signer_prime
         return int(Utils.hash_concat(str(check), str(obj)), 16) == signature[1]
 
-
-
-    def recover_servers(self,  shares, indices, all_connections, file_name):
+    def recover_servers(self, shares, indices, all_connections, file_name):
         proofs = MainServer.build_merkle_tree(shares)[1]
         for ind in range(CHUNKS_NUMBER + REDUNDANT_SIZE):
             if ind not in indices:
@@ -34,6 +32,7 @@ class MainServer:
                         new_server.store_data(key, None, ind, None)
                     self.servers[ind] = new_server
                 self.servers[ind].store_data(file_name, shares[ind], ind, proofs[ind])
+
     @staticmethod
     def split_into_chunks(data, k):
         """
@@ -50,13 +49,6 @@ class MainServer:
         Adds a file to the system by dividing it into chunks and distributing it amongst different servers.
         """
         encoded_chunks = file_contents.encode('utf-8')
-
-        # encoder = reedsolo.RSCodec(REDUNDANT_SIZE)
-        #
-        # encoded_chunks = encoder.encode(data_bytes)
-        # i = len(encoded_chunks) % CHUNKS_NUMBER
-        # chunk_size = len(encoded_chunks) // CHUNKS_NUMBER + i
-        # chunks = [encoded_chunks[i:i + chunk_size] for i in range(0, len(encoded_chunks), chunk_size)]
 
         # Ensure data length is a multiple of data_shares by padding if necessary
         pad_len = CHUNKS_NUMBER - (len(encoded_chunks) % CHUNKS_NUMBER)
