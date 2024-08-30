@@ -8,6 +8,12 @@ class Server:
         """
         self.storage[file_name] = chunk_data, chunk_index, chunk_requirements
 
+    def remove_data(self, file_name):
+        """
+        Removes the requested data from the storage.
+        """
+        self.storage.pop(file_name)
+
     def push_data(self, file_name, chunks_queue):
         """
         Push the requested data into the given queue.

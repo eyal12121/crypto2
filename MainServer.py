@@ -15,6 +15,14 @@ class MainServer:
         self.files_map = {}
         self.servers = [Server() for _ in range(CHUNKS_NUMBER + REDUNDANT_SIZE)]
 
+    @staticmethod
+    def check_signature(obj, signature, signer_prime, signer_generator, signer_public_key):
+        """
+        This function checks the validity of an object's signature.
+        """
+        check = pow(signer_generator, signature[0], signer_prime) * pow(signer_public_key, signature[1],
+                                                                        signer_prime) % signer_prime
+        return int(Utils.hash_concat(str(check), str(obj)), 16) == signature[1]
 
     def recover_server(self, ind, chunk, proofs, file_name, no_connection):
         if no_connection or not self.servers[ind].check_data(file_name):
@@ -38,7 +46,7 @@ class MainServer:
             chunks[-1] += data[k * chunk_size:]
         return chunks
 
-    def add_file(self, file_contents, file_name):
+    def add_file(self, file_contents, file_name, signature):
         """
         Adds a file to the system by dividing it into chunks and distributing it amongst different servers.
         """
@@ -69,9 +77,23 @@ class MainServer:
         self.files_map[file_name] = {
             "num_parts": CHUNKS_NUMBER,
             "redundant": REDUNDANT_SIZE,
-            "root_hash": root_hash
+            "root_hash": root_hash,
+            "signature": signature
         }
         return True, root_hash
+
+    def remove_file(self, filename, signer_prime, signer_generator, signer_public_key):
+        """
+        Removes file data chunks from the different servers only if client which requested to remove it is the one that
+        uploaded the said file.
+        """
+        if self.check_signature(filename, self.files_map[filename]["signature"], signer_prime, signer_generator,
+                                signer_public_key):
+            for server in self.servers:
+                server.remove_data(filename)
+            self.files_map.pop(filename)
+            return True
+        return False
 
     def get_file(self, filename, data_queue):
         """
