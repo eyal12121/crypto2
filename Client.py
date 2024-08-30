@@ -156,6 +156,7 @@ class Client:
             retrieved_chunks = decoder.decode(recovered_chunks, indices[:file_metadata["num_parts"]])
             encoder = zfec.Encoder(file_metadata["num_parts"], file_metadata["redundant"] + file_metadata["num_parts"])
             shares = encoder.encode(retrieved_chunks)
+
             self.main_server.recover_servers(shares, indices, all_connections, file_path)
 
         return True, self.reassemble_file(retrieved_chunks[:file_metadata["num_parts"]], output_path)
