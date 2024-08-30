@@ -25,5 +25,5 @@ def main():
     # erasure encoding
     # dynamic server amount (serverManager)?
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()

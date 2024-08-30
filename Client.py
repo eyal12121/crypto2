@@ -10,7 +10,6 @@ from reedsolo import RSCodec
 import secrets
 from sympy import isprime
 
-
 class Client:
     def __init__(self, main_server):
         self.main_server = main_server
@@ -70,6 +69,8 @@ class Client:
         Verify individual chunk.
         """
         chunk_data, index, siblings = chunk
+        if chunk_data is None or siblings is None:
+            return False, None, index
         curr_data = Utils.hash_data(chunk_data)
         for sibling, sibling_side in siblings:
             if sibling_side == "right":
@@ -104,6 +105,24 @@ class Client:
     def remove_file(self, file):
         return self.main_server.remove_file(file, self.p, self.g, self.public_key)
 
+    def retrieve_proof(self):
+        pass
+
+
+    def recover_servers(self, shares, indices, all_connections, num_of_pieces, proofs, file_name):
+        for ind in range(num_of_pieces):
+            if ind not in indices:
+                if ind % 2 == 0:
+                    new_proof = proofs[ind + 1][:]
+                    new_proof[0] = (Utils.hash_data(shares[ind + 1]), "right")
+                else:
+                    new_proof = proofs[ind - 1][:]
+                    new_proof[0] = (Utils.hash_data(shares[ind - 1]), "left")
+                self.main_server.recover_server(ind, shares[ind], new_proof, file_name, ind not in all_connections)
+
+
+
+
     def request_file(self, file_path, output_path):
         """
         Request a file from the main server and verify its integrity.
@@ -119,14 +138,19 @@ class Client:
         repeat = False
         retrieved_chunks = [None] * (file_metadata["num_parts"] + file_metadata["redundant"])
         indices = []
+        all_connections = []
+        proofs = {}
         while retrieved < len(retrieved_chunks):
             try:
                 # repeat = False
-                verified, chunk_data, index = self.verify_chunk(chunks_queue.get(timeout=5), root_hash)
+                chunk = chunks_queue.get(timeout=5)
+                proofs[chunk[1]] = chunk[2]
+                verified, chunk_data, index = self.verify_chunk(chunk, root_hash)
                 if verified and index != 1:
                     retrieved_chunks[index] = chunk_data
                     retrieved += 1
                     indices.append(index)
+                all_connections.append(index)
             except queue.Empty:
                 # if repeat:
                 break
@@ -147,5 +171,8 @@ class Client:
 
             # Decode the data from the available shares
             retrieved_chunks = decoder.decode(recovered_chunks, indices[:file_metadata["num_parts"]])
+            encoder = zfec.Encoder(file_metadata["num_parts"], file_metadata["redundant"] + file_metadata["num_parts"])
+            shares = encoder.encode(retrieved_chunks)
+            self.recover_servers(shares, indices, all_connections, file_metadata["num_parts"] + file_metadata["redundant"], proofs, file_path)
 
         return True, self.reassemble_file(retrieved_chunks[:file_metadata["num_parts"]], output_path)
