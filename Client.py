@@ -2,13 +2,55 @@ import queue
 import time
 
 from Utils import Utils
-
+from Crypto.Hash import SHA256
 from reedsolo import RSCodec
+import secrets
+from sympy import isprime
 
 
 class Client:
     def __init__(self, main_server):
         self.main_server = main_server
+        self.p, self._q = self.generate_safe_prime()
+        self.g = self.find_generator()
+        self._secret_key = self.generate_key()
+        self.public_key = pow(self.g, self._secret_key, self.p)
+
+    def generate_safe_prime(bits=32):
+        """
+        This function generates a safe prime p and its Sophie Germain prime q.
+        """
+        while True:
+            q = secrets.randbits(bits - 1)
+            p = 2 * q + 1
+            if isprime(q) and isprime(p):
+                return p, q
+
+    def find_generator(self):
+        """
+        This function finds a generator for the multiplicative group of integers modulo p.
+        """
+        for g in range(2, self.p):
+            if pow(g, self._q, self.p) != 1:
+                return g
+        raise Exception("No generator found")
+
+    def generate_key(self):
+        """
+        This function generates a private key x in the range [1, q-1].
+        """
+        x = secrets.randbelow(self._q - 1) + 1
+        return x
+
+    def sign_object(self, obj):
+        """
+        This function signs an object using the entity's private key.
+        """
+        k = self.generate_key()
+        r = pow(self.g, k, self.p)
+        h = SHA256.new((str(r) + obj).encode()).hexdigest()
+        sigma = (k - self._secret_key * int(h, 16))
+        return sigma, int(h, 16)
 
     def add_file(self, file):
         """
@@ -16,7 +58,7 @@ class Client:
         """
         with open(file, "r") as f:
             file_content = f.read()
-        return self.main_server.add_file(file_content, file)
+        return self.main_server.add_file(file_content, file, self.sign_object(file))
 
     @staticmethod
     def verify_chunk(chunk, root_hash):
@@ -50,6 +92,9 @@ class Client:
         # Decode the combined data
         decoded_data = rs.decode(available_chunks)
         return decoded_data
+
+    def remove_file(self, file):
+        return self.main_server.remove_file(file, self.p, self.g, self.public_key)
 
     def request_file(self, file_path, output_path):
         """
