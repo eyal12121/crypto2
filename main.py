@@ -28,6 +28,7 @@ def main():
     clients[2].add_file(file_path)  # addition of removed file into system by different client
     clients[0].request_file(file_path, output_files[4])  # client request file it did not add to system
     assert (not clients[0].remove_file(file_path))  # client asks to remove file that it did not add to system
+
     # server changed info / fall
     # dynamic server amount (serverManager)?
     # add test funcs for different case scenarios
