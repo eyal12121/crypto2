@@ -1,10 +1,12 @@
+import os
 import queue
 import time
+import zfec
+
 
 from Utils import Utils
 
 from reedsolo import RSCodec
-
 
 class Client:
     def __init__(self, main_server):
@@ -38,15 +40,27 @@ class Client:
         """
         Reassemble the chunks into a complete file.
         """
-        with open(output_path, 'wb') as output_file:
+
+        temp_path = output_path + '.temp'
+        with open(temp_path, 'wb') as output_file:
             for chunk in chunks:
                 output_file.write(chunk)
+
+        # Step 2: Read the temporary file and strip trailing null bytes
+        with open(temp_path, 'rb') as temp_file:
+            data = temp_file.read().rstrip(b'\0')
+
+        # Step 3: Write the cleaned data to the final output file
+        with open(output_path, 'wb') as output_file:
+            output_file.write(data)
+        os.remove(temp_path)
         print(f"File reassembled and saved to {output_path}.")
+
 
     def recover_data(self, encoded_chunks, k, r):
         rs = RSCodec(r)
         # Combine the available chunks into a single byte string
-        available_chunks = b''.join([chunk for chunk in encoded_chunks if chunk])
+        available_chunks = b''.join(encoded_chunks)
         # Decode the combined data
         decoded_data = rs.decode(available_chunks)
         return decoded_data
@@ -65,32 +79,34 @@ class Client:
         retrieved = 0
         repeat = False
         retrieved_chunks = [None] * (file_metadata["num_parts"] + file_metadata["redundant"])
+        indices = []
         while retrieved < len(retrieved_chunks):
             try:
-                repeat = False
-                verified, chunk_data, index = self.verify_chunk(chunks_queue.get(), root_hash)
-                if verified:
+                # repeat = False
+                verified, chunk_data, index = self.verify_chunk(chunks_queue.get(timeout=5), root_hash)
+                if verified and index != 1:
                     retrieved_chunks[index] = chunk_data
                     retrieved += 1
+                    indices.append(index)
             except queue.Empty:
-                if repeat:
-                    break
-                repeat = True
-                time.sleep(5)
-        retrieved_chunks[3]= None
-        retrieved -= 1
+                # if repeat:
+                break
+                # repeat = True
+                # time.sleep(5)
 
-        if (len(retrieved_chunks) - retrieved) > file_metadata["redundant"]:
+
+
+        if file_metadata["num_parts"] + file_metadata["redundant"] - retrieved > file_metadata["redundant"]:
             return False
         # Recover the missing chunk
         recovered_chunks = []
-        for i in range(file_metadata["num_parts"] + file_metadata["redundant"]):
-            if retrieved_chunks[i] is None:
-                # Recover the lost chunk
-                recovered_chunk = self.recover_data(retrieved_chunks, file_metadata["num_parts"],
-                                                    file_metadata["redundant"])
-                recovered_chunks.append(recovered_chunk)
-            else:
-                recovered_chunks.append(retrieved_chunks[i])
+        if file_metadata["num_parts"] + file_metadata["redundant"] > retrieved:
+            for ind in indices[:file_metadata["num_parts"]]:
+                recovered_chunks.append(retrieved_chunks[ind])
+            # Initialize the decoder
+            decoder = zfec.Decoder(file_metadata["num_parts"], file_metadata["redundant"] + file_metadata["num_parts"])
+
+            # Decode the data from the available shares
+            retrieved_chunks = decoder.decode(recovered_chunks, indices[:file_metadata["num_parts"]])
 
         return True, self.reassemble_file(retrieved_chunks[:file_metadata["num_parts"]], output_path)

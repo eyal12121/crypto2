@@ -13,3 +13,6 @@ class Server:
         Push the requested data into the given queue.
         """
         chunks_queue.put(self.storage.get(file_name, None))
+
+    def check_data(self, file_name):
+        return self.storage[file_name][0] == None
