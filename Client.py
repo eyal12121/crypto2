@@ -60,7 +60,7 @@ class Client:
         """
         Add a file to the file system.
         """
-        with open(file, "r") as f:
+        with open(file, "r", encoding='utf-8') as f:
             file_content = f.read()
         return self.main_server.add_file(file_content, file, self.sign_object(file))
 
