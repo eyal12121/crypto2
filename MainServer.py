@@ -1,5 +1,3 @@
-import threading
-from Crypto.Hash import SHA256
 from reedsolo import RSCodec
 from Utils import Utils
 
@@ -15,13 +13,14 @@ class MainServer:
         self.files_map = {}
         self.servers = [Server() for _ in range(CHUNKS_NUMBER + REDUNDANT_SIZE)]
 
-    def check_signature(self, obj, signature, signer_prime, signer_generator, signer_public_key):
+    @staticmethod
+    def check_signature(obj, signature, signer_prime, signer_generator, signer_public_key):
         """
         This function checks the validity of an object's signature.
         """
         check = pow(signer_generator, signature[0], signer_prime) * pow(signer_public_key, signature[1],
                                                                         signer_prime) % signer_prime
-        return int(SHA256.new((str(check) + str(obj)).encode()).hexdigest(), 16) == signature[1]
+        return int(Utils.hash_concat(str(check), str(obj)), 16) == signature[1]
 
     def generate_redundant_chunks(self, data_chunks, r):
         rs = RSCodec(r)

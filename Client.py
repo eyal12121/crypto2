@@ -2,7 +2,6 @@ import queue
 import time
 
 from Utils import Utils
-from Crypto.Hash import SHA256
 from reedsolo import RSCodec
 import secrets
 from sympy import isprime
@@ -16,6 +15,7 @@ class Client:
         self._secret_key = self.generate_key()
         self.public_key = pow(self.g, self._secret_key, self.p)
 
+    @staticmethod
     def generate_safe_prime(bits=32):
         """
         This function generates a safe prime p and its Sophie Germain prime q.
@@ -48,7 +48,7 @@ class Client:
         """
         k = self.generate_key()
         r = pow(self.g, k, self.p)
-        h = SHA256.new((str(r) + obj).encode()).hexdigest()
+        h = Utils.hash_concat(str(r), obj)
         sigma = (k - self._secret_key * int(h, 16))
         return sigma, int(h, 16)
 
@@ -85,7 +85,8 @@ class Client:
                 output_file.write(chunk)
         print(f"File reassembled and saved to {output_path}.")
 
-    def recover_data(self, encoded_chunks, k, r):
+    @staticmethod
+    def recover_data(encoded_chunks, k, r):
         rs = RSCodec(r)
         # Combine the available chunks into a single byte string
         available_chunks = b''.join([chunk for chunk in encoded_chunks if chunk])
@@ -122,7 +123,7 @@ class Client:
                     break
                 repeat = True
                 time.sleep(5)
-        retrieved_chunks[3]= None
+        retrieved_chunks[3] = None
         retrieved -= 1
 
         if (len(retrieved_chunks) - retrieved) > file_metadata["redundant"]:
