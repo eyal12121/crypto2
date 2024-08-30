@@ -24,15 +24,18 @@ class MainServer:
                                                                         signer_prime) % signer_prime
         return int(Utils.hash_concat(str(check), str(obj)), 16) == signature[1]
 
-    def recover_server(self, ind, chunk, proofs, file_name, no_connection):
-        if no_connection or not self.servers[ind].check_data(file_name):
-            new_server = Server()
-            for key in self.files_map.keys():
-                new_server.store_data(key, None, ind, None)
-            self.servers[ind] = new_server
 
-        self.servers[ind].store_data(file_name, chunk, ind, proofs)
 
+    def recover_servers(self,  shares, indices, all_connections, file_name):
+        proofs = MainServer.build_merkle_tree(shares)[1]
+        for ind in range(CHUNKS_NUMBER + REDUNDANT_SIZE):
+            if ind not in indices:
+                if ind not in all_connections or not self.servers[ind].check_data(file_name):
+                    new_server = Server()
+                    for key in self.files_map.keys():
+                        new_server.store_data(key, None, ind, None)
+                    self.servers[ind] = new_server
+                self.servers[ind].store_data(file_name, shares[ind], ind, proofs[ind])
     @staticmethod
     def split_into_chunks(data, k):
         """
