@@ -31,6 +31,7 @@ def main():
 
     # server changed info / fall
     # dynamic server amount (serverManager)?
+    # add threading?
     # add test funcs for different case scenarios
 
 

@@ -85,18 +85,25 @@ class MainServer:
         Removes file data chunks from the different servers only if client which requested to remove it is the one that
         uploaded the said file.
         """
+        if filename not in self.files_map:
+            print("File does not exist")
+            return False
         if self.check_signature(filename, self.files_map[filename]["signature"], signer_prime, signer_generator,
                                 signer_public_key):
             for server in self.servers:
                 server.remove_data(filename)
             self.files_map.pop(filename)
             return True
+        print("No permissions to remove file")
         return False
 
     def get_file(self, filename, data_queue):
         """
         Gets file data chunks from the different servers.
         """
+        if filename not in self.files_map:
+            print("File does not exist")
+            return False
         for server in self.servers:
             server.push_data(filename, data_queue)
         return self.files_map[filename]
