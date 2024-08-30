@@ -33,8 +33,6 @@ class MainServer:
 
         self.servers[ind].store_data(file_name, chunk, ind, proofs)
 
-
-
     @staticmethod
     def split_into_chunks(data, k):
         """
