@@ -2,7 +2,73 @@ from Client import Client
 from MainServer import MainServer
 
 NUM_CLIENTS = 3
-NUM_CHECKS = 9
+NUM_CHECKS = 5
+
+
+def test_adding_file(file_path):
+    main_server = MainServer()
+    client = Client(main_server)
+    assert (client.add_file(file_path))  # addition of file into system
+
+
+def test_fetch_file(file_path, output_file):
+    main_server = MainServer()
+    client = Client(main_server)
+    client.add_file(file_path)  # addition of file into system
+    assert (client.request_file(file_path, output_file)[0])  # client requests file it added to system
+
+
+def test_fetching_invalid_file(file_path, output_file):
+    main_server = MainServer()
+    client = Client(main_server)
+    assert (not client.request_file(file_path, output_file)[0])  # client request file it did not add to system
+
+
+def test_remove_file(file_path):
+    main_server = MainServer()
+    client = Client(main_server)
+    client.add_file(file_path)  # addition of file into system
+    assert (client.remove_file(file_path))  # client request file it did not add to system
+
+
+def test_unaotherize_remove(file_path):
+    main_server = MainServer()
+    client1 = Client(main_server)
+    client2 = Client(main_server)
+    client1.add_file(file_path)  # addition of file into system
+    assert (not client2.remove_file(file_path))  # client request file it did not add to system
+
+
+def test_connection_loss(file_path1, file_path2, output_file):
+    main_server = MainServer()
+    client = Client(main_server)
+    client.add_file(file_path1)  # addition of file into system
+    client.add_file(file_path2)  # addition of file into system
+    main_server.connection_loss(0)  # Simulate connection loss to a single server
+    assert (client.request_file(file_path1, output_file)[0])  # client request file it did not add to system
+    assert (main_server.servers[0].check_data(file_path2))
+
+
+def test_malicious_server(file_path1, file_path2, output_file):
+    main_server = MainServer()
+    client = Client(main_server)
+    client.add_file(file_path1)  # addition of file into system
+    client.add_file(file_path2)  # addition of file into system
+    main_server.corrupt_data(file_path1, 3)  # Simulate corrupted data (malicious server)
+    assert (client.request_file(file_path1, output_file)[0])  # client request file it did not add to system
+    assert (main_server.servers[3].check_data(file_path2))
+
+
+def test_erasure_failing(file_path, output_file):
+    main_server = MainServer()
+    client = Client(main_server)
+    client.add_file(file_path)  # addition of file into system
+
+    main_server.connection_loss(0)  # Simulate connection loss to a single server
+    main_server.connection_loss(1)  # Simulate connection loss to a single server
+    main_server.connection_loss(2)  # Simulate connection loss to a single server
+    main_server.connection_loss(3)  # Simulate connection loss to a single server
+    assert (not client.request_file(file_path, output_file)[0])  # client request file it did not add to system
 
 
 def main():
@@ -17,25 +83,14 @@ def main():
         out_name = "checkings" + str(i) + ".txt"
         output_files.append(out_name)
 
-    clients[0].add_file(file_path)  # addition of file into system
-    clients[1].add_file(file_path2)  # addition of file into system
-    clients[0].request_file(file_path, output_files[0])  # client requests file it added to system
-    clients[1].request_file(file_path, output_files[1])  # client requests file it added to system
-    clients[0].request_file(file_path2, output_files[2])  # client request file it did not add to system
-    clients[1].request_file(file_path2, output_files[3])  # client request file it did not add to system
-    assert (clients[0].remove_file(file_path))  # client asks to remove file it added to system
-    assert (not clients[0].remove_file(file_path2))  # client asks to remove file it did not add to system
-    clients[2].add_file(file_path)  # addition of removed file into system by different client
-    clients[0].request_file(file_path, output_files[4])  # client request file it did not add to system
-    assert (not clients[0].remove_file(file_path))  # client asks to remove file that it did not add to system
-    main_server.connection_loss(0)  # Simulate connection loss to a single server
-    assert (clients[0].request_file(file_path, output_files[5])[0])  # client request file it did not add to system
-    main_server.corrupt_data(file_path, 3)  # Simulate corrupted data (malicious server)
-    assert (clients[0].request_file(file_path, output_files[6])[0])  # client request file it did not add to system
-    main_server.connection_loss(1)  # Simulate connection loss to a single server
-    assert (clients[0].request_file(file_path, output_files[7])[0])  # client request file it did not add to system
-    assert (not clients[0].request_file(file_path2, output_files[8])[0])  # client request file it did not add to system
-
+    test_adding_file(file_path)
+    test_fetch_file(file_path, output_files[0])
+    test_fetching_invalid_file(file_path, output_files[1])
+    test_remove_file(file_path)
+    test_unaotherize_remove(file_path)
+    test_connection_loss(file_path, file_path2, output_files[2])
+    test_malicious_server(file_path, file_path2, output_files[3])
+    test_erasure_failing(file_path, output_files[4])
     # dynamic server amount (serverManager)?
     # add test funcs for different case scenarios
 

@@ -27,5 +27,8 @@ class Server:
         return self.storage[file_name][0] is None
 
     def corrupt_data(self, file_name):
+        """
+        changes the data of a file, used for testings
+        """
         self.storage[file_name] = bytearray(getrandbits(8) for _ in range(10)), self.storage[file_name][
             1], self.storage[file_name][2]

@@ -4,8 +4,8 @@ import zfec
 from Utils import Utils
 from Server import Server
 
-CHUNKS_NUMBER = 6
-REDUNDANT_SIZE = 2
+CHUNKS_NUMBER = 13
+REDUNDANT_SIZE = 3
 
 
 class MainServer:
@@ -24,6 +24,9 @@ class MainServer:
         return int(Utils.hash_concat(str(check), str(obj)), 16) == signature[1]
 
     def recover_servers(self, retrieved_chunks, indices, all_connections, file_name):
+        """
+        recover servers that have fallen or got malicious
+        """
         encoder = zfec.Encoder(CHUNKS_NUMBER, CHUNKS_NUMBER + REDUNDANT_SIZE)
         shares = encoder.encode(retrieved_chunks)
         proofs = MainServer.build_merkle_tree(shares)[1]
@@ -133,10 +136,10 @@ class MainServer:
 
         return current_level[0], proofs
 
-    """"
-    simulate corruption to a server
-    """
     def corrupt_data(self, file_name, num):
+        """"
+        simulate corruption to a server
+        """
         # random_server = random.randint(0, len(self.servers) - 1)
         self.servers[num].corrupt_data(file_name)
 
