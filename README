@@ -9,7 +9,6 @@ Adding a File
 To add a file to the system, use the add_file method:
 client.add_file(file_path)
 
-
 Fetching a File
 To request a file from the server, use the request_file method. This will save the file to the specified output path:
 client.request_file(file_path, output_file)
