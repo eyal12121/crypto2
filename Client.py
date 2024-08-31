@@ -18,7 +18,7 @@ class Client:
     @staticmethod
     def generate_safe_prime(bits=32):
         """
-        This function generates a safe prime p and its Sophie Germain prime q.
+        Generates a safe prime p and its Sophie Germain prime q.
         """
         while True:
             q = secrets.randbits(bits - 1)
@@ -28,7 +28,7 @@ class Client:
 
     def find_generator(self):
         """
-        This function finds a generator for the multiplicative group of integers modulo p.
+        Finds a generator for the multiplicative group of integers modulo p.
         """
         for g in range(2, self.p):
             if pow(g, self._q, self.p) != 1:
@@ -37,14 +37,14 @@ class Client:
 
     def generate_key(self):
         """
-        This function generates a private key x in the range [1, q-1].
+        Generates a private key x in the range [1, q-1].
         """
         x = secrets.randbelow(self._q - 1) + 1
         return x
 
     def sign_object(self, obj):
         """
-        This function signs an object using the entity's private key.
+        Signs an object using the entity's private key.
         """
         k = self.generate_key()
         r = pow(self.g, k, self.p)
@@ -54,7 +54,7 @@ class Client:
 
     def add_file(self, file):
         """
-        Add a file to the file system.
+        Adds a file to the file system.
         """
         with open(file, "r", encoding='utf-8') as f:
             file_content = f.read()
@@ -63,7 +63,7 @@ class Client:
     @staticmethod
     def verify_chunk(chunk, root_hash):
         """
-        Verify individual chunk.
+        Verifies individual chunks.
         """
         chunk_data, index, siblings = chunk
         if chunk_data is None or siblings is None:
@@ -80,20 +80,22 @@ class Client:
     @staticmethod
     def reassemble_file(chunks, output_path):
         """
-        Reassemble the chunks into a complete file.
+        Reassembles the chunks into a complete file.
         """
-
         decoded_data = b''.join(chunks).rstrip(b'\0')
         with open(output_path, 'wb') as output_file:
             output_file.write(decoded_data)
         print(f"File reassembled and saved to {output_path}.")
 
     def remove_file(self, file):
+        """
+        Removes requested file from system.
+        """
         return self.main_server.remove_file(file, self.p, self.g, self.public_key)
 
     def request_file(self, file_path, output_path):
         """
-        Request a file from the main server and verify its integrity.
+        Requests a file from the main server and verifies its integrity.
         """
         chunks_queue = queue.Queue()
         file_metadata = self.main_server.get_file(file_path, chunks_queue)

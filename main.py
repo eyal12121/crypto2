@@ -28,10 +28,10 @@ def test_remove_file(file_path):
     main_server = MainServer()
     client = Client(main_server)
     client.add_file(file_path)  # addition of file into system
-    assert (client.remove_file(file_path))  # client request file it did not add to system
+    assert (client.remove_file(file_path))  # client request file it added to system
 
 
-def test_unaotherize_remove(file_path):
+def test_unauthorized_remove(file_path):
     main_server = MainServer()
     client1 = Client(main_server)
     client2 = Client(main_server)
@@ -80,19 +80,17 @@ def main():
     file_path = "example.txt"
     file_path2 = "example2.txt"
     for i in range(NUM_CHECKS):
-        out_name = "checkings" + str(i) + ".txt"
+        out_name = "checking" + str(i) + ".txt"
         output_files.append(out_name)
 
     test_adding_file(file_path)
     test_fetch_file(file_path, output_files[0])
     test_fetching_invalid_file(file_path, output_files[1])
     test_remove_file(file_path)
-    test_unaotherize_remove(file_path)
+    test_unauthorized_remove(file_path)
     test_connection_loss(file_path, file_path2, output_files[2])
     test_malicious_server(file_path, file_path2, output_files[3])
     test_erasure_failing(file_path, output_files[4])
-    # dynamic server amount (serverManager)?
-    # add test funcs for different case scenarios
 
 
 if __name__ == "__main__":

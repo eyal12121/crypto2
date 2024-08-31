@@ -1,4 +1,3 @@
-import random
 import sys
 import zfec
 from Utils import Utils
@@ -17,7 +16,7 @@ class MainServer:
     @staticmethod
     def check_signature(obj, signature, signer_prime, signer_generator, signer_public_key):
         """
-        This function checks the validity of an object's signature.
+        Checks the validity of an object's signature.
         """
         check = pow(signer_generator, signature[0], signer_prime) * pow(signer_public_key, signature[1],
                                                                         signer_prime) % signer_prime
@@ -25,7 +24,7 @@ class MainServer:
 
     def recover_servers(self, retrieved_chunks, indices, all_connections, file_name):
         """
-        recover servers that have fallen or got malicious
+        Recovers servers that have fallen or got malicious.
         """
         encoder = zfec.Encoder(CHUNKS_NUMBER, CHUNKS_NUMBER + REDUNDANT_SIZE)
         shares = encoder.encode(retrieved_chunks)
@@ -137,8 +136,8 @@ class MainServer:
         return current_level[0], proofs
 
     def corrupt_data(self, file_name, num):
-        """"
-        simulate corruption to a server
+        """
+        simulates corruption to a server.
         """
         # random_server = random.randint(0, len(self.servers) - 1)
         self.servers[num].corrupt_data(file_name)
